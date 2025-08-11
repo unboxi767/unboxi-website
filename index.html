@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Unboxi — Mystery Boxes</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
   <style>
     :root{
       --main:#ff007f;
@@ -103,13 +104,32 @@
     .tick{width:66px;height:66px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin:0 auto 10px;background:linear-gradient(90deg,var(--success),#27ae60);box-shadow:0 8px 24px rgba(39,174,96,0.18)}
     .tick svg{width:36px;height:36px;fill:#fff}
 
+    /* payments inside modal */
+    .modal-payments{display:flex;gap:12px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+    .modal-payments a{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;color:#fff;text-decoration:none;font-weight:700}
+    .modal-paypal{background:linear-gradient(90deg,var(--main),var(--accent))}
+    .modal-revolut{background:linear-gradient(90deg,var(--accent),var(--main))}
+
+    .modal-follow{margin-top:12px;color:var(--muted)}
+    .modal-follow a{margin:0 8px;color:var(--main);text-decoration:none;font-weight:700}
+
     /* responsive tweaks */
     @media (max-width:600px){
       header h1{font-size:1.4rem}
       .card{padding:14px}
       .order-box{padding:16px}
+      .modal .panel{width:92%;padding:16px}
+      .modal-payments a{width:100%;justify-content:center}
     }
-
+	.social {
+		padding: 3rem 1rem;
+		background: #fff0f5;
+		text-align: center;
+	}
+	.social a { margin: 0 8px; color: var(--main); font-weight:600; text-decoration:none; }
+	.social a:hover {
+      color:#8a2be2;
+    }
   </style>
 </head>
 <body>
@@ -197,6 +217,11 @@
       <p style="color:var(--muted)">Shipping: 3–5 business days. Returns are not accepted due to the mystery nature of the boxes. Questions? Contact: <strong>unboxiforall@gmail.com</strong></p>
     </section>
 
+    <section class="social">
+      <h2>Follow Us</h2>
+      <a href="https://instagram.com" target="_blank" rel="noopener"><i class="fab fa-instagram"></i> Instagram</a>
+      <a href="https://tiktok.com" target="_blank" rel="noopener"><i class="fab fa-tiktok"></i> TikTok</a>
+    </section>
   </main>
 
   <footer>&copy; 2025 Unboxi — Made with ❤️ in Greece</footer>
@@ -211,7 +236,9 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.285 6.709a1 1 0 0 0-1.414-1.418l-9.193 9.206-4.243-4.243a1 1 0 0 0-1.414 1.414l4.95 4.95a1 1 0 0 0 1.414 0l9.887-9.909z"/></svg>
         </div>
         <h3 id="modal-title" style="margin:8px 0 6px"></h3>
-        <p id="modal-text" style="color:var(--muted)"></p>
+        <div id="modal-text" style="color:var(--muted)"></div>
+        <!-- payments + follow area (populated dynamically) -->
+        <div id="modal-extras" style="margin-top:10px"></div>
         <div style="margin-top:14px"><button id="modal-close" style="background:var(--main);color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer">Close</button></div>
       </div>
     </div>
@@ -236,17 +263,21 @@
     const modalText = document.getElementById('modal-text');
     const modalIcon = document.getElementById('modal-icon');
     const modalClose = document.getElementById('modal-close');
+    const modalExtras = document.getElementById('modal-extras');
 
-    function openModal({title, text, ok=true}){
+    function openModal({title, text, ok=true, extrasHTML='' }){
       modalTitle.textContent = title;
       modalText.textContent = text;
       modalIcon.style.display = ok ? 'inline-flex' : 'none';
+      modalExtras.innerHTML = extrasHTML || '';
       modal.classList.add('open');
       modal.setAttribute('aria-hidden','false');
     }
     function closeModal(){
       modal.classList.remove('open');
       modal.setAttribute('aria-hidden','true');
+      // clear extras after closing so buttons are recreated next time
+      setTimeout(()=> modalExtras.innerHTML = '', 220);
     }
     modalClose.addEventListener('click', closeModal);
     overlay.addEventListener('click', closeModal);
@@ -283,7 +314,27 @@
       emailjs.send(SERVICE_ID, TEMPLATE_ID, data)
         .then(function(resp){
           console.log('EmailJS response', resp);
-          openModal({title:'Order Sent', text:'✅ Your order is sent. Check your email for confirmation.'});
+
+          // create extras HTML: payment buttons + follow links
+          const extrasHTML = `
+            <div class="modal-payments">
+              <a class="modal-paypal" href="https://www.paypal.me/LenaSwthriadh" target="_blank" rel="noopener">
+                <i class="fa-brands fa-paypal" aria-hidden="true"></i>&nbsp; Pay with PayPal
+              </a>
+              <a class="modal-revolut" href="https://revolut.me/ioanniseirinaios07" target="_blank" rel="noopener">
+                <i class="fa-solid fa-wallet" aria-hidden="true"></i>&nbsp; Pay with Revolut
+              </a>
+            </div>
+            <div class="modal-follow" style="text-align:center">
+              <div style="margin-top:10px;">Follow us:</div>
+              <div style="margin-top:6px">
+                <a href="https://instagram.com" target="_blank" rel="noopener"><i class="fab fa-instagram"></i>&nbsp;Instagram</a>
+                <a href="https://tiktok.com" target="_blank" rel="noopener" style="margin-left:12px"><i class="fab fa-tiktok"></i>&nbsp;TikTok</a>
+              </div>
+            </div>
+          `;
+
+          openModal({title:'Order Sent', text:'✅ Your order is sent. Please complete payment below to process your order.', ok:true, extrasHTML});
           form.reset();
           submitBtn.disabled = false;
           submitBtn.textContent = origText;
@@ -302,4 +353,6 @@
   </script>
 </body>
 </html>
+
+
 
